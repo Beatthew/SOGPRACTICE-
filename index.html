@@ -395,7 +395,6 @@
     <label>KAMERA<select id="camDev"></select></label>
     <label>MIKROFON<select id="micDev"></select><span class="meter"><i id="micLvl"></i></span></label>
     <label>MIKROFON SZINT · <b id="micGainVal"></b><input type="range" id="micGain" min="0" max="300" step="5"></label>
-    <label title="Ennyivel késik a band a felvételen (és a kotta), hogy a mikrofon/kamera késéséhez igazodjon">SZINKRON · <b id="camSyncVal"></b><input type="range" id="camSync" min="0" max="400" step="5"></label>
     <button class="close" id="camClose" title="Kamera bezárása (Esc)" aria-label="Kamera bezárása">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -906,7 +905,11 @@ class WebEngine {
     const [d, b] = await Promise.all([load(FILES.Drums), load(FILES.Band)]);
     this.buf = { Drums: d, Band: b };
     this.g = {};
-    for (const ch in this.buf) { this.g[ch] = this.ctx.createGain(); this.g[ch].connect(this.ctx.destination); }
+    this.pre = {};                                                     // pre: a nyers sáv a keverő előtt (a kamera-felvétel szinkronmérése ezt hallgatja)
+    for (const ch in this.buf) {
+      this.g[ch] = this.ctx.createGain(); this.g[ch].connect(this.ctx.destination);
+      this.pre[ch] = this.ctx.createGain(); this.pre[ch].connect(this.g[ch]);
+    }
     this.duration = Math.min(d.duration, b.duration);
     this.pos = 0; this.playing = false; this.loop = null; this.src = [];
   }
@@ -921,7 +924,7 @@ class WebEngine {
     const when = this.ctx.currentTime + 0.04;
     this.src = Object.keys(this.buf).map(ch => {
       const s = this.ctx.createBufferSource();
-      s.buffer = this.buf[ch]; s.connect(this.g[ch]);
+      s.buffer = this.buf[ch]; s.connect(this.pre[ch]);
       if (this.loop) { s.loop = true; s.loopStart = this.loop[0]; s.loopEnd = this.loop[1]; }
       s.start(when, this.pos); return s;
     });
@@ -1226,8 +1229,10 @@ document.querySelectorAll('.fader').forEach(f => {
 
 /* ---------- KAMERA: kamerakép + élő kotta, felvétellel ----------
    A vászon maga a felvétel: kamerakép (kitöltve) + alul kottasáv (a fő nézet kottasora képként) + lejátszófej.
-   Hang a felvételen: band/drums a keverő szerint, SZINKRON-nyi késleltetéssel + mikrofon (nyersen, feldolgozás nélkül).
-   A kotta is SZINKRON-nyit késik, így a felvételen a kotta, a band és a játék együtt van. */
+   Hang a felvételen: band/drums a keverő szerint + mikrofon (nyersen, feldolgozás nélkül).
+   Automatikus szinkron: felvétel közben a mikrofon és a nyers drum sáv külön rögzül; a végén az ütések
+   (hangerő-ugrások) összevetéséből kiderül, mennyit késik a játék a bandhez képest (fülhallgató + mikrofon
+   késése), és a band ennyivel eltolva kerül a videóba. A kotta a legutóbb mért késéssel fut (cam.sync). */
 const CAM_FMT = { land: [1920, 1080], port: [1080, 1920] };
 const SVG_COL = { 'var(--fill)': '#ffd166', 'var(--band)': '#8fd3ff', 'var(--acc)': '#60ff9d' };   // képként nincs CSS változó
 const camLS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
@@ -1246,12 +1251,23 @@ async function openCam() {
   engine.ctx.resume();
   setCamFmt(cam.fmt);
   const lat = Math.round(((engine.ctx.outputLatency || 0) + (engine.ctx.baseLatency || 0)) * 1000);
-  cam.sync = +(camLS('camSync') ?? Math.min(400, lat + 20));
-  $('camSync').value = cam.sync; $('micGain').value = cam.micGain; showCamVals();
-  const c = engine.ctx, n = cam.nodes = { dest: c.createMediaStreamDestination(), delay: c.createDelay(1), mic: c.createGain(), meter: c.createAnalyser(), src: null };
+  cam.sync = +(camLS('camLag') ?? Math.min(400, lat + 20));             // legutóbb mért késés, különben becslés
+  $('micGain').value = cam.micGain; showCamVals();
+  const c = engine.ctx, n = cam.nodes = { dest: c.createMediaStreamDestination(), delay: c.createDelay(1), mic: c.createGain(), meter: c.createAnalyser(), src: null, tap: null };
   for (const ch in engine.g) engine.g[ch].connect(n.delay);
   n.delay.connect(n.dest); n.mic.connect(n.dest); n.meter.fftSize = 512;
   n.delay.delayTime.value = cam.sync / 1000; n.mic.gain.value = cam.micGain / 100;
+  try {                                                                 // tap: 0 = mikrofon, 1 = band (keverő után), 2 = nyers drum sáv
+    if (!c.audioWorklet) throw new Error('no worklet');
+    if (!c.__tap) c.__tap = c.audioWorklet.addModule(URL.createObjectURL(new Blob([TAP_WORKLET], { type: 'text/javascript' })));
+    await c.__tap;
+    n.tap = new AudioWorkletNode(c, 'cam-tap', { numberOfInputs: 3, numberOfOutputs: 1, outputChannelCount: [1] });
+    for (const ch in engine.g) engine.g[ch].connect(n.tap, 0, 1);
+    engine.pre.Drums.connect(n.tap, 0, 2);
+    n.tapOut = c.createGain(); n.tapOut.gain.value = 0;                // csak hogy a böngésző futtassa
+    n.tap.connect(n.tapOut); n.tapOut.connect(c.destination);
+  } catch (e) { n.tap = null; console.warn('cam tap', e); }
+  if (!cam.on) return;
   await startCamera(camLS('camDev'));
   await startMic(camLS('micDev'));
   if (cam.on) await listDevices();
@@ -1265,7 +1281,11 @@ function closeCam() {
   cam.on = false; $('cam').hidden = true;
   stopTracks(cam.camStream); stopTracks(cam.micStream); cam.camStream = cam.micStream = null; cam.video.srcObject = null;
   const n = cam.nodes; cam.nodes = null;
-  try { for (const ch in engine.g) engine.g[ch].disconnect(n.delay); n.delay.disconnect(); n.mic.disconnect(); if (n.src) n.src.disconnect(); } catch (e) {}
+  try {
+    for (const ch in engine.g) { engine.g[ch].disconnect(n.delay); if (n.tap) engine.g[ch].disconnect(n.tap); }
+    if (n.tap) { engine.pre.Drums.disconnect(n.tap); n.tap.disconnect(); n.tapOut.disconnect(); }
+    n.delay.disconnect(); n.mic.disconnect(); if (n.src) n.src.disconnect();
+  } catch (e) {}
 }
 
 async function startCamera(id) {
@@ -1288,6 +1308,7 @@ async function startMic(id) {
   if (!cam.on) return stopTracks(cam.micStream);
   n.src = engine.ctx.createMediaStreamSource(cam.micStream);
   n.src.connect(n.mic); n.src.connect(n.meter);
+  if (n.tap) n.src.connect(n.tap, 0, 0);
 }
 
 async function listDevices() {
@@ -1311,11 +1332,7 @@ function setCamFmt(f) {
 }
 $('camFmt').onclick = e => { const b = e.target.closest('button'); if (b && !cam.rec) setCamFmt(b.dataset.f); };
 
-function showCamVals() { $('camSyncVal').textContent = cam.sync + ' ms'; $('micGainVal').textContent = cam.micGain + '%'; }
-$('camSync').oninput = e => {
-  cam.sync = +e.target.value; camLS('camSync', cam.sync); showCamVals();
-  if (cam.nodes) cam.nodes.delay.delayTime.setTargetAtTime(cam.sync / 1000, engine.ctx.currentTime, 0.02);
-};
+function showCamVals() { $('micGainVal').textContent = cam.micGain + '%'; }
 $('micGain').oninput = e => {
   cam.micGain = +e.target.value; camLS('camMicGain', cam.micGain); showCamVals();
   if (cam.nodes) cam.nodes.mic.gain.setTargetAtTime(cam.micGain / 100, engine.ctx.currentTime, 0.02);
@@ -1342,6 +1359,10 @@ function stripImage(bars, nw, nh, vw) {
 function camFrame() {
   if (!cam.on) return;
   requestAnimationFrame(camFrame);
+  drawCam();
+  if (cam.rec && cam.rec.frame) cam.rec.frame($('camCanvas'));          // WebCodecs-felvétel: a kész képkocka megy az enkóderbe
+}
+function drawCam() {
   const cv = $('camCanvas'), x = cv.getContext('2d'), W = cv.width, H = cv.height, v = cam.video;
   x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
   if (v.videoWidth) {                                                   // kamerakép: kitölti a vásznat (a széleit levágja)
@@ -1410,50 +1431,258 @@ function camFrame() {
   }
 }
 
-/* felvétel: a vászon képe + a felvételi hang; MP4, ha a böngésző tudja, különben WebM */
-function startRec() {
-  if (!cam.on || cam.rec) return;
+/* hangcsap (AudioWorklet): felvétel közben a mikrofont és a bandet nyersen gyűjti, és 128 mintánként
+   egy-egy energiaértéket számol a mikrofonra és a nyers drum sávra (ebből lesz a szinkronmérés) */
+const TAP_WORKLET = `
+class Tap extends AudioWorkletProcessor {
+  constructor() {
+    super(); this.on = false; this.alloc(); this.pm = 0; this.pd = 0; this.z = new Float32Array(128);
+    this.port.onmessage = e => {
+      if (e.data.start != null) { this.from = e.data.start; this.on = true; this.alloc(); }
+      else { this.on = false; this.flush(); this.port.postMessage({ done: true }); }
+    };
+  }
+  alloc() { this.N = 8192; this.l = new Float32Array(this.N); this.r = new Float32Array(this.N); this.m = new Float32Array(this.N); this.em = []; this.ed = []; this.n = 0; }
+  flush() {
+    if (!this.n) return;
+    const n = this.n;
+    this.port.postMessage({ l: this.l.slice(0, n), r: this.r.slice(0, n), m: this.m.slice(0, n), em: this.em, ed: this.ed });
+    this.alloc();
+  }
+  process(inp) {
+    if (!this.on || currentTime < this.from) return true;
+    const z = this.z, [mic, band, drums] = inp;
+    const m0 = mic[0] || z, b0 = band[0] || z, b1 = band[1] || b0, d0 = drums[0] || z, d1 = drums[1] || d0;
+    let em = 0, ed = 0, pm = this.pm, pd = this.pd;
+    for (let i = 0; i < m0.length; i++) {
+      const k = this.n + i, d = d0[i] + d1[i];
+      this.l[k] = b0[i]; this.r[k] = b1[i]; this.m[k] = m0[i];
+      em += (m0[i] - pm) ** 2; ed += (d - pd) ** 2; pm = m0[i]; pd = d;   // különbség = durva felüláteresztő: az ütések élét méri
+    }
+    this.pm = pm; this.pd = pd; this.em.push(em); this.ed.push(ed);
+    this.n += m0.length;
+    if (this.n >= this.N) this.flush();
+    return true;
+  }
+}
+registerProcessor('cam-tap', Tap);`;
+
+/* késés mérése: a két energiagörbéből ütés-jel (hirtelen növekedés), majd keresztkorreláció 0–600 ms között.
+   Visszaad: késés mp-ben, vagy null, ha nincs elég ütés a mikrofonon (pl. nem játszott) */
+function measureLag(em, ed, sr) {
+  const B = 128 / sr, n = Math.min(em.length, ed.length);
+  const onset = e => {
+    let mean = 0; for (let i = 0; i < n; i++) mean += e[i]; mean /= n;
+    const f = mean * 0.01 + 1e-12, o = new Float32Array(n);
+    for (let i = 4; i < n; i++) {
+      const prev = (e[i - 1] + e[i - 2] + e[i - 3] + e[i - 4]) / 4;
+      o[i] = Math.max(0, Math.log(e[i] + f) - Math.log(prev + f));
+    }
+    let a = 0; for (let i = 0; i < n; i++) a += o[i]; a /= n;
+    for (let i = 0; i < n; i++) o[i] -= a;
+    return o;
+  };
+  const mo = onset(em), dr = onset(ed);
+  const k0 = -Math.round(0.03 / B), k1 = Math.round(0.6 / B), c = [];
+  for (let k = k0; k <= k1; k++) {
+    let s = 0;
+    for (let i = Math.max(0, -k), e = Math.min(n, n - k); i < e; i++) s += dr[i] * mo[i + k];
+    c.push(s);
+  }
+  let best = 0; for (let j = 1; j < c.length; j++) if (c[j] > c[best]) best = j;
+  let mean = 0, sd = 0; for (const v of c) mean += v; mean /= c.length;
+  for (const v of c) sd += (v - mean) ** 2; sd = Math.sqrt(sd / c.length);
+  if (!sd || (c[best] - mean) / sd < 4) return null;                    // nincs egyértelmű csúcs
+  let d = 0;                                                            // finomítás parabolával
+  if (best > 0 && best < c.length - 1) { const [a, b, g] = [c[best - 1], c[best], c[best + 1]]; const q = a - 2 * b + g; if (q) d = 0.5 * (a - g) / q; }
+  return (best + k0 + d) * B;
+}
+
+/* felvétel: WebCodecs (kép az enkóderbe képkockánként, hang nyersen) → a végén mért késéssel kevert hang → MP4.
+   Ha a böngésző ezt nem tudja, MediaRecorder: ott a band a legutóbb mért késéssel (élőben) kerül a videóba. */
+let muxLib = null;
+const loadMux = () => muxLib || (muxLib = import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/+esm'));
+
+async function pickCodecs(W, H, sr) {
+  if (!window.VideoEncoder || !window.AudioEncoder || !cam.nodes.tap) return null;
+  let video = null, audio = null;
+  for (const [codec, mux] of [['avc1.640033', 'avc'], ['avc1.4d0033', 'avc'], ['avc1.420033', 'avc'], ['vp09.00.41.08', 'vp9']]) {
+    const cfg = { codec, width: W, height: H, bitrate: 8e6, framerate: 30 };
+    try { if ((await VideoEncoder.isConfigSupported(cfg)).supported) { video = { cfg, mux }; break; } } catch (e) {}
+  }
+  for (const [codec, mux] of [['mp4a.40.2', 'aac'], ['opus', 'opus']]) {
+    const cfg = { codec, sampleRate: sr, numberOfChannels: 2, bitrate: 192000 };
+    try { if ((await AudioEncoder.isConfigSupported(cfg)).supported) { audio = { cfg, mux }; break; } } catch (e) {}
+  }
+  return video && audio ? { video, audio } : null;
+}
+
+/* a muxer ide ír: sorban érkező darabok + a végén néhány visszaírás (fejlécek) a már meglévő darabokba */
+function partsTarget() {
+  const parts = [];
+  let end = 0;
+  return {
+    parts,
+    onData(data, pos) {
+      if (pos === end) { parts.push({ pos, d: data.slice() }); end += data.length; return; }
+      for (const p of parts) {
+        const a = Math.max(pos, p.pos), b = Math.min(pos + data.length, p.pos + p.d.length);
+        if (a < b) p.d.set(data.subarray(a - pos, b - pos), a - p.pos);
+      }
+      if (pos + data.length > end) { const from = end - pos; parts.push({ pos: end, d: data.slice(from) }); end = pos + data.length; }
+    },
+  };
+}
+
+async function startWcRec(codecs) {
+  const { Muxer, StreamTarget } = await loadMux();
+  const cv = $('camCanvas'), W = cv.width, H = cv.height, c = engine.ctx, sr = c.sampleRate, tap = cam.nodes.tap;
+  const out = partsTarget();
+  const muxer = new Muxer({
+    target: new StreamTarget({ onData: (d, p) => out.onData(d, p), chunked: true, chunkSize: 4 * 2 ** 20 }),
+    video: { codec: codecs.video.mux, width: W, height: H },
+    audio: { codec: codecs.audio.mux, numberOfChannels: 2, sampleRate: sr },
+    fastStart: false, firstTimestampBehavior: 'offset',
+  });
+  let err = null;
+  const venc = new VideoEncoder({ output: (ch, meta) => muxer.addVideoChunk(ch, meta), error: e => { err = e; } });
+  venc.configure(codecs.video.cfg);
+
+  const store = { l: [], r: [], m: [], em: [], ed: [], n: 0 }, CH = 8192;
+  const toI16 = f => { const a = new Int16Array(f.length); for (let i = 0; i < f.length; i++) a[i] = Math.max(-1, Math.min(1, f[i])) * 32767; return a; };
+  let done;
+  const finished = new Promise(r => { done = r; });
+  tap.port.onmessage = e => {
+    const d = e.data;
+    if (d.done) return done();
+    store.l.push(toI16(d.l)); store.r.push(toI16(d.r)); store.m.push(toI16(d.m));
+    store.em.push(...d.em); store.ed.push(...d.ed); store.n += d.l.length;
+  };
+  const t0 = performance.now();
+  tap.port.postMessage({ start: c.currentTime });
+  let next = 0, nFrames = 0;
+
+  return {
+    t0,
+    frame(canvas) {
+      const t = performance.now() - t0;
+      if (t < next || err) return;
+      next = Math.max(next + 1000 / 30, t - 1000 / 30);
+      if (venc.encodeQueueSize > 4) return;                             // lassú gépen inkább kihagy egy képkockát
+      const f = new VideoFrame(canvas, { timestamp: Math.round(t * 1000) });
+      venc.encode(f, { keyFrame: nFrames++ % 60 === 0 });
+      f.close();
+    },
+    async stop(progress) {
+      tap.port.postMessage({ stop: true });
+      await finished;
+      if (!nFrames) { const f = new VideoFrame($('camCanvas'), { timestamp: 0 }); venc.encode(f, { keyFrame: true }); f.close(); nFrames++; }   // háttérben nem rajzolt: legalább egy kép legyen
+      await venc.flush(); venc.close();
+      if (err) throw err;
+      progress('szinkron');
+      const em = Float32Array.from(store.em), ed = Float32Array.from(store.ed);
+      const measured = measureLag(em, ed, sr);
+      const lag = measured != null ? measured : cam.sync / 1000;
+      if (measured != null) { cam.sync = Math.round(measured * 1000); camLS('camLag', cam.sync); }
+      progress('hang');
+      // keverés: band lag-gal később + mikrofon; ha túlvezérelne, az egészet arányosan halkítja
+      const sh = Math.round(lag * sr), g = cam.micGain / 100, N = store.n, S = 1 / 32767;
+      const at = (arr, i) => i < 0 || i >= N ? 0 : arr[i / CH | 0][i % CH] * S;
+      let peak = 0;
+      for (let i = 0; i < N; i += 4) peak = Math.max(peak, Math.abs(at(store.l, i - sh) + at(store.m, i) * g), Math.abs(at(store.r, i - sh) + at(store.m, i) * g));
+      const vol = peak > 0.98 ? 0.98 / peak : 1;
+      const aenc = new AudioEncoder({ output: (ch, meta) => muxer.addAudioChunk(ch, meta), error: e => { err = e; } });
+      aenc.configure(codecs.audio.cfg);
+      const F = 1024;
+      for (let s = 0; s < N; s += F) {
+        const n = Math.min(F, N - s), buf = new Float32Array(2 * n);
+        for (let i = 0; i < n; i++) {
+          const mic = at(store.m, s + i) * g;
+          buf[i] = (at(store.l, s + i - sh) + mic) * vol;
+          buf[n + i] = (at(store.r, s + i - sh) + mic) * vol;
+        }
+        const ad = new AudioData({ format: 'f32-planar', sampleRate: sr, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(s / sr * 1e6), data: buf });
+        aenc.encode(ad); ad.close();
+        if (aenc.encodeQueueSize > 50) await new Promise(r => setTimeout(r, 0));
+      }
+      await aenc.flush(); aenc.close();
+      if (err) throw err;
+      muxer.finalize();
+      return { blob: new Blob(out.parts.map(p => p.d), { type: 'video/mp4' }), ext: 'mp4', lagMs: Math.round(lag * 1000), measured: measured != null };
+    },
+  };
+}
+
+function startMrRec() {
   const stream = new MediaStream([...$('camCanvas').captureStream(30).getVideoTracks(), ...cam.nodes.dest.stream.getAudioTracks()]);
   const type = ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
-  let r;
-  try { r = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 10e6, audioBitsPerSecond: 192e3 }); }
-  catch (e) { return camMsg(`A felvétel nem indult el (${e.name}).`); }
+  const r = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 10e6, audioBitsPerSecond: 192e3 });
   const chunks = [];
   r.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-  const recT0 = performance.now();
-  r.onstop = () => {
-    stream.getVideoTracks().forEach(t => t.stop());                  // a hangsáv a közös felvételi kimeneté, az marad
-    const mime = r.mimeType || type || 'video/webm', ext = mime.includes('mp4') ? 'mp4' : 'webm';
-    const d = new Date(), p = n => String(n).padStart(2, '0');
-    const name = `${song ? song.id : 'song'}-playthrough-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
-    const file = new File(chunks, name, { type: mime }), secs = (performance.now() - recT0) / 1000;
-    if (cam.on) return showDone(file, secs);
-    const a = document.createElement('a');                             // a kamera már bezárult (pl. másik oldalra léptek): azonnali letöltés
-    a.href = URL.createObjectURL(file); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-  };
   r.start(1000);
-  cam.rec = r; cam.recT0 = performance.now(); cam.stopAt = 0;
+  return {
+    t0: performance.now(),
+    stop: () => new Promise(res => {
+      r.onstop = () => {
+        stream.getVideoTracks().forEach(t => t.stop());              // a hangsáv a közös felvételi kimeneté, az marad
+        const mime = r.mimeType || type || 'video/webm';
+        res({ blob: new Blob(chunks, { type: mime }), ext: mime.includes('mp4') ? 'mp4' : 'webm', lagMs: cam.sync, measured: false });
+      };
+      r.stop();
+    }),
+  };
+}
+
+async function startRec() {
+  if (!cam.on || cam.rec || cam.busy) return;
+  cam.busy = true;
+  const cv = $('camCanvas');
+  let rec = null;
+  try {
+    const codecs = await pickCodecs(cv.width, cv.height, engine.ctx.sampleRate);
+    if (codecs) try { rec = await startWcRec(codecs); } catch (e) { console.warn('WebCodecs rec', e); }
+    if (!rec) { cam.nodes.delay.delayTime.value = cam.sync / 1000; rec = startMrRec(); }
+  } catch (e) { cam.busy = false; return camMsg(`A felvétel nem indult el (${e.name}).`); }
+  cam.busy = false;
+  if (!cam.on) return rec.stop();
+  cam.rec = rec; cam.recT0 = rec.t0; cam.stopAt = 0;
   $('camRec').classList.add('on'); $('camFmt').style.opacity = .4;
   if (!engine.playing) { engine.play(); setIcon(); }
 }
-function stopRec() {
-  if (!cam.rec) return;
-  cam.rec.stop(); cam.rec = null;
-  $('camRec').classList.remove('on'); $('camRecTxt').textContent = 'REC'; $('camFmt').style.opacity = '';
+
+async function stopRec() {
+  const rec = cam.rec;
+  if (!rec) return;
+  cam.rec = null; cam.busy = true;
+  const secs = (performance.now() - rec.t0) / 1000;
+  $('camRec').classList.remove('on'); $('camFmt').style.opacity = '';
   if (engine && engine.playing) { engine.pause(); setIcon(); }
+  const label = { szinkron: 'SZINKRON…', hang: 'MENTÉS…' };
+  $('camRecTxt').textContent = 'MENTÉS…';
+  let res;
+  try { res = await rec.stop(s => { $('camRecTxt').textContent = label[s]; }); }
+  catch (e) { console.error(e); camMsg(`A felvételt nem sikerült elkészíteni (${e.name || e}).`); }
+  cam.busy = false; $('camRecTxt').textContent = 'REC';
+  if (!res) return;
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const name = `${song ? song.id : 'song'}-playthrough-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${res.ext}`;
+  const file = new File([res.blob], name, { type: res.blob.type });
+  if (cam.on) return showDone(file, secs, res);
+  const a = document.createElement('a');                               // a kamera már bezárult (pl. másik oldalra léptek): azonnali letöltés
+  a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
 /* felvétel után: előnézet + egyértelmű mentés. Telefonon a megosztás menü a legjobb út
    (iPhone: „Videó mentése” → Fotók; Android: Galéria / Google Fotók / Drive), a letöltés a tartalék. */
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = /Android/.test(navigator.userAgent);
 let doneFile = null;
-function showDone(file, secs) {
+function showDone(file, secs, res) {
   doneFile = file; doneSaved = false;
   const url = URL.createObjectURL(file);
   $('doneVideo').src = url; $('doneDl').href = url; $('doneDl').download = file.name;
-  $('doneInfo').textContent = `${file.name} · ${fmt(secs)} · ${(file.size / 1048576).toFixed(1)} MB`;
+  $('doneInfo').textContent = `${file.name} · ${fmt(secs)} · ${(file.size / 1048576).toFixed(1)} MB · szinkron: ${res.lagMs} ms${res.measured ? ' (mérve)' : ''}`;
   const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
   $('doneShare').hidden = !canShare;
   $('doneShare').textContent = isIOS ? 'Mentés a Fotókba' : 'Mentés / megosztás';
