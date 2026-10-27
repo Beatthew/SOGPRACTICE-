@@ -22,7 +22,7 @@
   button{font-family:inherit;color:inherit}
 
   .app{position:relative;height:100vh;max-width:1500px;margin:0 auto;padding:20px;
-    display:grid;grid-template-columns:200px minmax(0,1fr) 168px;grid-template-rows:auto minmax(0,1fr);gap:16px}
+    display:grid;grid-template-columns:200px minmax(0,1fr) 290px;grid-template-rows:auto minmax(0,1fr);gap:16px}
   .panel{background:var(--panel);border-radius:14px}
 
   /* ---------- control panel ---------- */
@@ -105,11 +105,13 @@
   .faders{flex:1;min-height:200px;width:100%;display:flex;justify-content:space-around}
   .fader{display:flex;flex-direction:column;align-items:center;gap:12px;--c:var(--acc)}
   .fader[data-ch=Band]{--c:var(--band)}
+  .fader[data-ch=Tempo]{--c:var(--fill)}
+  .fader[data-ch=Metro]{--c:#c9b6ff}
   .fader .val{font-size:12px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums}
   .track{position:relative;flex:1;width:30px;border-radius:15px;background:rgba(255,255,255,.12);cursor:pointer;touch-action:none}
   .track .lvl{position:absolute;left:0;right:0;bottom:0;border-radius:15px;background:var(--c);opacity:.55}
-  .knob{position:absolute;left:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:#fff;color:var(--bg);
-    display:grid;place-items:center;font-size:12px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.35);border:3px solid var(--c)}
+  .knob{position:absolute;left:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:#fff;color:var(--bg);
+    display:grid;place-items:center;font-size:11px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.35);border:3px solid var(--c)}
   .fader.muted .knob{background:#ff6b6b;border-color:#ff6b6b;color:#1a1a1a}
   .fader.muted .lvl{opacity:.15}
   .mute{width:44px;height:30px;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--mut);
@@ -141,17 +143,14 @@
   .choose[hidden],.elements[hidden],.elem[hidden]{display:none}
   .back{display:inline-block;margin-bottom:22px;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--mut);text-decoration:none;text-transform:uppercase}
   .back:hover{color:#fff}
-  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mode[hidden]{display:none}
   .mode{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:26px 22px;border-radius:14px;background:var(--panel);
     color:inherit;text-decoration:none;transition:background .15s}
   .mode:hover{background:rgba(255,255,255,.12)}
   .mode:hover .go{background:var(--acc);color:var(--bg)}
   .mode b{font-size:18px;font-weight:800;letter-spacing:.1em}
   .mode span:last-child{font-size:13px;font-weight:600;color:var(--mut);line-height:1.5}
-  .etabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-  .etabs button{height:34px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:rgba(255,255,255,.8);
-    font:inherit;font-size:12px;font-weight:800;letter-spacing:.14em;cursor:pointer}
-  .etabs button.on{background:var(--acc);border-color:var(--acc);color:var(--bg)}
   .ecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
   .ecard{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;background:var(--panel);color:inherit;text-decoration:none;transition:background .15s}
   .ecard:hover{background:rgba(255,255,255,.12)}
@@ -161,7 +160,7 @@
   .ecard svg{display:block;width:100%;height:auto}
   .ecards p{grid-column:1/-1;margin:20px 0;text-align:center;font-size:13px;font-weight:600;color:var(--mut)}
   .elem{position:relative;height:100vh;max-width:1500px;margin:0 auto;padding:20px;display:grid;
-    grid-template-columns:260px minmax(0,1fr) 168px;grid-template-rows:minmax(0,1fr);gap:16px}
+    grid-template-columns:260px minmax(0,1fr) 290px;grid-template-rows:minmax(0,1fr);gap:16px}
   .ectl{display:flex;flex-direction:column;gap:14px;padding:18px}
   .ectl .back{margin-bottom:6px}
   .ectl .kind{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--acc)}
@@ -189,56 +188,38 @@
     .estaff{min-height:40vh}
   }
 
-  /* ---------- PRACTICE: dobgép a kottából ---------- */
-  .prac[hidden]{display:none}
-  .prac{position:relative;height:100vh;max-width:1500px;margin:0 auto;padding:20px;display:grid;
-    grid-template-columns:270px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:16px}
-  .ppick{grid-row:1/3;display:flex;flex-direction:column;gap:14px;padding:18px;min-height:0}
-  .ppick .back{margin-bottom:6px}
-  .ppick .kind{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--acc)}
-  .ppick h1{margin:-8px 0 0;font-size:24px;font-weight:800;line-height:1.15}
-  .prtabs{grid-template-columns:repeat(3,1fr);gap:6px;margin:0}
-  .prtabs button{font-size:10px;letter-spacing:.1em}
-  .plist{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:4px;scrollbar-width:none}
-  .plist button{border:0;border-radius:6px;background:rgba(255,255,255,.06);padding:10px 12px;text-align:left;cursor:pointer;
-    display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;color:rgba(255,255,255,.85)}
-  .plist button small{font-size:11px;font-weight:600;color:var(--mut);white-space:nowrap}
-  .plist button.var{margin-left:16px;font-size:12px}
-  .plist button:hover{background:rgba(255,255,255,.11)}
-  .plist button.on{background:var(--acc);color:var(--bg)}
-  .plist button.on small{color:rgba(49,73,83,.75)}
-  .pstaff{position:relative;display:flex;flex-direction:column;gap:14px;padding:18px 20px;border:1.5px solid rgba(96,255,157,.45);min-height:0}
-  .pbig{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
-  .pbig svg{display:block;width:100%;height:auto;max-height:48%;overflow:visible}
-  .pbig svg:only-child{max-height:100%}
-  .pline{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:10px}
-  .pline svg{display:block;width:100%;flex:1 1 0;min-height:0;overflow:visible}
-  .pline svg.next{flex:.6 1 0;opacity:.45}
-  .pbig[hidden],.pline[hidden]{display:none}
-  .pcount{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
-    font-size:120px;font-weight:800;color:var(--acc);text-shadow:0 4px 30px rgba(0,0,0,.4)}
-  .pcount[hidden]{display:none}
-  .pctl{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:16px 32px;padding:16px 22px}
-  .pctl label{display:flex;flex-direction:column;gap:6px;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--mut)}
-  .pctl label b{color:#fff}
-  .pctl input[type=range]{accent-color:var(--acc)}
-  .ptempo{flex:1 1 280px;display:flex;flex-direction:column;gap:6px}
-  .ptempo label em{font-style:normal;color:var(--acc)}
-  .ptempo input{width:100%}
-  .pq{display:flex;gap:6px}
-  .pq button{height:28px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line);background:transparent;font-size:11px;font-weight:800;cursor:pointer}
-  .pq button.on{background:var(--acc);border-color:var(--acc);color:var(--bg)}
-  .pvol input{width:140px}
-  .pchk{flex-direction:row !important;align-items:center;cursor:pointer}
-  .pchk input{accent-color:var(--acc);width:16px;height:16px}
-  @media (max-width:860px){
-    .prac{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:none;padding:16px;gap:12px}
-    .ppick,.pctl{grid-column:1;grid-row:auto}
-    .ppick{max-height:none}
-    .plist{max-height:220px}
-    .pstaff{min-height:46vh}
-    .pcount{font-size:90px}
-  }
+  /* ---------- rész-videók: tanári videó + saját felvételek ---------- */
+  .emedia{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;scrollbar-width:none;margin-top:4px}
+  .emedia h3{margin:8px 0 0;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--mut)}
+  .tvbox video{display:block;width:100%;border-radius:8px;background:#000}
+  .tvbox p,.takes p{margin:0;font-size:12px;font-weight:600;color:var(--mut);line-height:1.5}
+  .recbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .recbtns button{height:36px;border-radius:8px;border:1.5px solid rgba(255,90,90,.6);background:transparent;color:#ff8a8a;
+    font-size:11px;font-weight:800;letter-spacing:.12em;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+  .recbtns button:hover{background:rgba(255,90,90,.12)}
+  .recbtns i{width:9px;height:9px;border-radius:50%;background:#ff5a5a}
+  .takes{display:flex;flex-direction:column;gap:6px}
+  .take{border-radius:8px;background:rgba(255,255,255,.06);padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+  .take-row{display:flex;align-items:center;gap:8px}
+  .take-row span{flex:1;min-width:0;font-size:12px;font-weight:700;line-height:1.3}
+  .take-row small{display:block;font-size:10px;font-weight:600;color:var(--mut)}
+  .take-row button{flex:none;width:30px;height:30px;border-radius:6px;border:0;background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer}
+  .take-row button:hover{background:rgba(255,255,255,.16)}
+  .take-row button svg{width:14px;height:14px}
+  .take video,.take audio{width:100%;border-radius:6px}
+  .take video{background:#000}
+  .recov[hidden]{display:none}
+  .recov{position:fixed;inset:0;z-index:20;background:rgba(10,16,19,.9);display:grid;place-items:center;padding:16px}
+  .recov-box{width:100%;max-width:640px;display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:14px;background:var(--bg)}
+  .recov-box h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.14em;color:#ff8a8a}
+  .recov-box video{width:100%;max-height:55vh;border-radius:8px;background:#000;transform:scaleX(-1)}
+  .recov-box video[hidden],.recmic[hidden]{display:none}
+  .recmic .meter{display:block;height:10px;border-radius:5px}
+  .recnote{margin:0;font-size:12px;font-weight:600;line-height:1.5;color:rgba(255,255,255,.75)}
+  .recerr{margin:0;font-size:12px;font-weight:700;color:#ff8a8a}
+  .recerr:empty{display:none}
+  .recov-btns{display:flex;gap:10px;align-items:center}
+  .recx{height:52px;padding:0 20px;border-radius:26px;border:1.5px solid var(--line);background:transparent;font-size:13px;font-weight:800;cursor:pointer}
 
   /* ---------- kamera mód: kamerakép + élő kotta egy vásznon, felvétellel ---------- */
   .cam[hidden]{display:none}
@@ -309,25 +290,25 @@
   <nav class="songs" id="songList"></nav>
 </div>
 
-<!-- dal kiválasztva: építőelemek vagy teljes kotta -->
+<!-- dal kiválasztva: groove-ok, fillek vagy a teljes szám -->
 <div class="home choose" id="choose" hidden>
   <a class="back" href="#">← dalok</a>
   <header><h1 id="chTitle"></h1><span id="chArtist"></span></header>
   <div class="modes">
-    <a class="mode" id="modeStudy">
+    <a class="mode" id="modeGrooves">
       <span class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></span>
-      <b>STUDY ELEMENTS</b>
-      <span>A dal építőelemei külön: groove-ok és fillek, mindegyik a dal egy részletén, ismétlődve.</span>
+      <b>GROOVES</b>
+      <span>A dal groove-jai külön, mindegyik a dal egy részletén, ismétlődve.</span>
+    </a>
+    <a class="mode" id="modeFills">
+      <span class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>
+      <b>FILLS</b>
+      <span>A fillek és kiállások külön, a dal saját részletén, ismétlődve.</span>
     </a>
     <a class="mode" id="modePlay">
       <span class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
-      <b>PLAY ALONG</b>
+      <b>TELJES SZÁM</b>
       <span>A teljes kotta, végig a dallal — szekciókkal, fill-jelzéssel, loop-pal.</span>
-    </a>
-    <a class="mode" id="modePractice">
-      <span class="go"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 2.2a6.8 6.8 0 1 1 0 13.6 6.8 6.8 0 0 1 0-13.6zM11 7v5.6l4.2 2.5.9-1.5-3.3-2V7z"/></svg></span>
-      <b>PRACTICE</b>
-      <span>Groove, fill vagy a teljes szám dobgéppel, loopolva — állítható tempóval és metronómmal.</span>
     </a>
   </div>
 </div>
@@ -335,8 +316,7 @@
 <!-- építőelemek listája -->
 <div class="home elements" id="elements" hidden>
   <a class="back" id="elBack"></a>
-  <header><h1>ELEMENTS</h1><span id="elSong"></span></header>
-  <div class="etabs" id="etabs"><button data-t="groove" class="on">GROOVES</button><button data-t="fill">FILLS</button></div>
+  <header><h1 id="elTitle">GROOVES</h1><span id="elSong"></span></header>
   <div class="ecards" id="ecards"></div>
 </div>
 
@@ -347,6 +327,17 @@
     <span class="kind" id="emKind"></span>
     <h1 id="emName"></h1>
     <div class="vtabs" id="emVars"></div>
+    <!-- videók ehhez a részhez: a tanáré (órai bemutató) + a saját felvételek (házi feladat) -->
+    <div class="emedia">
+      <h3>TANÁRI VIDEÓ</h3>
+      <div class="tvbox" id="tvBox"></div>
+      <h3>SAJÁT FELVÉTELEK</h3>
+      <div class="recbtns">
+        <button id="recVideo"><i></i>VIDEÓ</button>
+        <button id="recAudio"><i></i>HANG</button>
+      </div>
+      <div class="takes" id="takes"></div>
+    </div>
     <div class="eplay">
       <button class="play" id="emPlay" aria-label="Lejátszás"><svg viewBox="0 0 24 24" fill="currentColor" id="emIcon"><path d="M7 4.5v15l13-7.5z"/></svg></button>
       <p>ütem <b id="emBar">–</b><br><span id="emLoop"></span></p>
@@ -358,37 +349,6 @@
       <h2 id="emWhere"></h2>
       <svg id="emLine" viewBox="0 0 1000 130"></svg>
     </div>
-  </section>
-</div>
-
-<!-- PRACTICE: a kiválasztott rész dobgéppel (a kottából), loopolva, állítható tempóval -->
-<div class="prac" id="prac" hidden>
-  <section class="panel ppick">
-    <a class="back" id="prBack">← dal</a>
-    <span class="kind">PRACTICE</span>
-    <h1 id="prSong"></h1>
-    <div class="etabs prtabs" id="prTabs"><button data-t="groove">GROOVES</button><button data-t="fill">FILLS</button><button data-t="song">TELJES</button></div>
-    <div class="plist" id="prList"></div>
-  </section>
-  <section class="panel pstaff">
-    <div class="score-head">
-      <div><h2 id="prName"></h2><p id="prWhere"></p></div>
-      <div class="barnum"><div>ütem</div><b id="prBar">–</b><span> / <span id="prBars">–</span></span></div>
-    </div>
-    <div class="pbig" id="prBig"></div>
-    <div class="pline" id="prLine"><svg id="prL0" viewBox="0 0 1000 130"></svg><svg id="prL1" class="next" viewBox="0 0 1000 130"></svg></div>
-    <div class="pcount" id="prCount" hidden></div>
-  </section>
-  <section class="panel pctl">
-    <button class="play" id="prPlay" aria-label="Lejátszás"><svg viewBox="0 0 24 24" fill="currentColor" id="prIcon"><path d="M7 4.5v15l13-7.5z"/></svg></button>
-    <div class="ptempo">
-      <label for="prTempo"><span>TEMPÓ · <b id="prBpm"></b> BPM <em id="prPct"></em></span></label>
-      <input type="range" id="prTempo">
-      <div class="pq" id="prQuick"><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="90">90%</button><button data-p="100">100%</button></div>
-    </div>
-    <label class="pvol"><span>DOB · <b id="prMidiV"></b></span><input type="range" id="prMidi" min="0" max="100" step="1"></label>
-    <label class="pvol"><span>METRONÓM · <b id="prMetV"></b></span><input type="range" id="prMet" min="0" max="100" step="1"></label>
-    <label class="pchk"><input type="checkbox" id="prCountIn"> 1 ütem beszámolás</label>
   </section>
 </div>
 
@@ -452,10 +412,35 @@
         <div class="track"><div class="lvl"></div><div class="knob">drums</div></div>
         <button class="mute">M</button>
       </div>
+      <div class="fader" data-ch="Tempo" title="Tempó: lassítás hangmagasság-változás nélkül (dupla katt = 100%)">
+        <span class="val" id="valTempo">100%</span>
+        <div class="track"><div class="lvl"></div><div class="knob">tempó</div></div>
+        <button class="mute">1×</button>
+      </div>
+      <div class="fader" data-ch="Metro" title="Metronóm hangerő">
+        <span class="val" id="valMetro">0</span>
+        <div class="track"><div class="lvl"></div><div class="knob">klikk</div></div>
+        <button class="mute">M</button>
+      </div>
     </div>
   </aside>
 
   <svg class="connector" id="connector"><path id="connPath" fill="none" stroke="var(--acc)" stroke-width="1.5"/></svg>
+</div>
+
+<!-- saját felvétel egy részhez: kamera/mikrofon nyersen, a zene csak a fülhallgatóban szól, a fájlba nem kerül -->
+<div class="recov" id="recOv" hidden>
+  <div class="recov-box">
+    <h2 id="recTitle">VIDEÓ FELVÉTEL</h2>
+    <video id="recPrev" muted playsinline autoplay></video>
+    <div class="recmic" id="recMic"><span class="meter"><i id="recLvl"></i></span></div>
+    <p class="recnote">Fülhallgatóban hallgasd a zenét — a felvételre csak a te játékod kerül. A REC a loop elejéről indítja a zenét.</p>
+    <p class="recerr" id="recErr"></p>
+    <div class="recov-btns">
+      <button class="rec" id="recGo"><i></i><span id="recTxt">REC</span></button>
+      <button class="recx" id="recCancel">Mégse</button>
+    </div>
+  </div>
 </div>
 
 <!-- kamera mód: a vászon maga a felvétel (kamera + kottasáv); a vezérlősor nem kerül rá -->
@@ -982,8 +967,14 @@ const fmt = s => { s = Math.max(0, s | 0); return `${s / 60 | 0}:${String(s % 60
 
 /* ---------- audio engines ----------
    WebAudio: a két sáv mintapontosan együtt indul, a loop is mintapontos.
+   Lassítás (TEMPÓ fader) hangmagasság-változás nélkül: Signalsmith Stretch (WASM/AudioWorklet). Ilyenkor a
+   lejátszott részlet (a loop, vagy loop nélkül az egész szám) mind a négy csatornája (band L/R, drums L/R)
+   egyetlen stretch node-ba kerül, így a két sáv lassítva is mintapontosan együtt marad. 100%-on a sima út szól.
    Ha a fájlt közvetlenül (file://) nyitod meg, a böngésző nem engedi a fetch-et,
    ilyenkor két <audio> elemre esünk vissza. */
+let stretchLib = null;
+const loadStretch = () => stretchLib || (stretchLib = import('https://cdn.jsdelivr.net/npm/signalsmith-stretch@1.3.2/SignalsmithStretch.mjs').then(m => m.default));
+
 class WebEngine {
   async init() {
     this.ctx = new AudioContext();
@@ -997,17 +988,29 @@ class WebEngine {
       this.g[ch] = this.ctx.createGain(); this.g[ch].connect(this.ctx.destination);
       this.pre[ch] = this.ctx.createGain(); this.pre[ch].connect(this.g[ch]);
     }
+    this.metro = this.ctx.createGain(); this.metro.connect(this.ctx.destination);
     this.duration = Math.min(d.duration, b.duration);
-    this.pos = 0; this.playing = false; this.loop = null; this.src = [];
+    this.pos = 0; this.playing = false; this.loop = null; this.src = []; this.rate = 1; this.run = 0; this.t0 = null;
   }
   time() {
-    if (!this.playing) return this.pos;
-    let t = this.pos + this.ctx.currentTime - this.t0;
+    if (!this.playing || this.t0 == null) return this.pos;
+    let t = this.pos + Math.max(0, this.ctx.currentTime - this.t0) * this.rate;
     if (this.loop && this.pos < this.loop[1] && t >= this.loop[1]) { const [a, b] = this.loop; t = a + (t - a) % (b - a); }
     return Math.min(Math.max(t, 0), this.duration);
   }
   play() {
     this.ctx.resume();
+    this.playing = true; this.t0 = null;
+    const run = ++this.run;
+    if (this.rate === 1) return this.playDirect();
+    this.prepStretch().then(() => {
+      if (run !== this.run || !this.playing) return;
+      const when = this.ctx.currentTime + 0.12, [a, b] = this.region;
+      this.st.schedule({ active: true, input: this.pos - a, rate: this.rate, loopStart: 0, loopEnd: this.loop ? b - a : 0, output: when });
+      this.t0 = when;
+    }).catch(e => { console.warn('stretch', e); if (run === this.run && this.playing) { this.rate = 1; this.playDirect(); } });
+  }
+  playDirect() {
     const when = this.ctx.currentTime + 0.04;
     this.src = Object.keys(this.buf).map(ch => {
       const s = this.ctx.createBufferSource();
@@ -1015,11 +1018,45 @@ class WebEngine {
       if (this.loop) { s.loop = true; s.loopStart = this.loop[0]; s.loopEnd = this.loop[1]; }
       s.start(when, this.pos); return s;
     });
-    this.t0 = when; this.playing = true;
+    this.t0 = when;
   }
-  pause() { if (!this.playing) return; this.pos = this.time(); this.src.forEach(s => s.stop()); this.src = []; this.playing = false; }
+  /* a stretch node és a lejátszandó részlet előkészítése (a részlet csak akkor töltődik újra, ha változott) */
+  async prepStretch() {
+    const c = this.ctx;
+    if (!this.st) {
+      const Stretch = await loadStretch();
+      this.st = await Stretch(c, { outputChannelCount: [4] });
+      const split = c.createChannelSplitter(4);
+      this.st.connect(split);
+      ['Band', 'Drums'].forEach((ch, k) => {
+        const m = c.createChannelMerger(2);
+        split.connect(m, 2 * k, 0); split.connect(m, 2 * k + 1, 1); m.connect(this.pre[ch]);
+      });
+    }
+    const region = this.loop ? [...this.loop] : [0, this.duration], key = region.join('|');
+    if (this.stKey === key) return;
+    this.stKey = null;
+    const sr = c.sampleRate, n = Math.min(this.buf.Band.length, this.buf.Drums.length);
+    const i0 = Math.max(0, Math.floor(region[0] * sr)), i1 = Math.min(n, Math.ceil(region[1] * sr));
+    const two = B => { const L = B.getChannelData(0), R = B.numberOfChannels > 1 ? B.getChannelData(1) : L; return [L.slice(i0, i1), R.slice(i0, i1)]; };
+    this.st.dropBuffers();
+    await this.st.addBuffers([...two(this.buf.Band), ...two(this.buf.Drums)]);
+    this.region = [i0 / sr, i1 / sr]; this.stKey = key;
+  }
+  pause() {
+    if (!this.playing) return;
+    this.pos = this.time(); this.run++;
+    this.src.forEach(s => s.stop()); this.src = [];
+    if (this.st) this.st.schedule({ active: false });
+    this.playing = false; this.t0 = null;
+  }
   seek(t) { const p = this.playing; this.pause(); this.pos = Math.max(0, Math.min(t, this.duration - 0.05)); if (p) this.play(); }
-  setLoop(r) { this.loop = r; if (this.playing) this.seek(this.time()); }
+  setLoop(r) { this.loop = r; if (this.playing) this.seek(this.time()); else if (this.rate !== 1) this.prepStretch().catch(() => {}); }
+  setRate(r) {
+    if (r === this.rate) return;
+    const p = this.playing; this.pause(); this.rate = r;
+    if (p) this.play(); else if (r !== 1) this.prepStretch().catch(() => {});   // előre betölt, hogy az indítás azonnali legyen
+  }
   setVol(ch, v) { this.g[ch].gain.setTargetAtTime(v, this.ctx.currentTime, 0.015); }
   tick() { if (this.playing && !this.loop && this.time() >= this.duration - 0.02) { this.pause(); this.pos = 0; return 'ended'; } }
 }
@@ -1040,6 +1077,7 @@ class ElEngine {
   pause() { Object.values(this.a).forEach(el => el.pause()); }
   seek(t) { Object.values(this.a).forEach(el => el.currentTime = t); }
   setLoop(r) { this.loop = r; }
+  setRate(r) { Object.values(this.a).forEach(el => { el.preservesPitch = true; el.playbackRate = r; }); }   // a böngésző saját nyújtása
   setVol(ch, v) { this.a[ch].volume = Math.min(1, v); }
   tick() {
     const t = this.time();
@@ -1276,10 +1314,6 @@ const ICON_PLAY = '<path d="M7 4.5v15l13-7.5z"/>', ICON_PAUSE = '<path d="M6 4h4
 function setIcon() { $('playIcon').innerHTML = engine && engine.playing ? ICON_PAUSE : ICON_PLAY; }
 $('play').onclick = () => { if (!engine) return; engine.playing ? engine.pause() : engine.play(); setIcon(); };
 document.addEventListener('keydown', e => {
-  if (view === 'practice') {                                          // PRACTICE: Space = indítás / megállítás
-    if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); $('prPlay').click(); }
-    return;
-  }
   if (!engine) return;
   if (cam.on) {                                                       // kamera módban: Space = play, R = felvétel, Esc = bezárás
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || doneFile) return;
@@ -1299,24 +1333,76 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- mixer ---------- */
-const mix = { Band: { v: 80, m: false }, Drums: { v: 100, m: false } };
+/* Band / Drums: hangerő. Tempo: a fader 0–100 → 50–100% tempó (a gomb visszaállít 100%-ra).
+   Metro: a metronóm hangereje (alapból 0 = nem szól). */
+const MIX_DEFAULT = { Band: 80, Drums: 100, Tempo: 100, Metro: 0 };
+const mix = { Band: { v: 80, m: false }, Drums: { v: 100, m: false }, Tempo: { v: 100, m: false }, Metro: { v: 0, m: false } };
+const tempoPct = () => 50 + mix.Tempo.v / 2;
+let rateTimer = null;
 function applyMix(ch) {
   const f = document.querySelector(`.fader[data-ch=${ch}]`), { v, m } = mix[ch];
   f.querySelector('.knob').style.top = (100 - v) + '%';
   f.querySelector('.lvl').style.height = v + '%';
   f.classList.toggle('muted', m);
+  if (ch === 'Tempo') {
+    $('valTempo').textContent = Math.round(tempoPct()) + '%';
+    clearTimeout(rateTimer);                                           // húzás közben nem indítja újra a lejátszást minden pixelnél
+    rateTimer = setTimeout(() => { if (engine && engine.setRate) engine.setRate(tempoPct() / 100); }, 180);
+    return;
+  }
   $('val' + ch).textContent = v;
-  if (engine) engine.setVol(ch, m ? 0 : (v / 100) ** 2);   // négyzetes görbe = természetesebb halkítás
+  const g = m ? 0 : (v / 100) ** 2;                                    // négyzetes görbe = természetesebb halkítás
+  if (ch === 'Metro') { if (engine && engine.metro) engine.metro.gain.setTargetAtTime(g, engine.ctx.currentTime, 0.015); return; }
+  if (engine) engine.setVol(ch, g);
 }
 document.querySelectorAll('.fader').forEach(f => {
   const ch = f.dataset.ch, tr = f.querySelector('.track');
   const set = e => { const r = tr.getBoundingClientRect(); mix[ch].v = Math.round(Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height)) * 100); applyMix(ch); };
   tr.addEventListener('pointerdown', e => { tr.setPointerCapture(e.pointerId); set(e); tr.onpointermove = set; });
   tr.addEventListener('pointerup', () => tr.onpointermove = null);
-  tr.addEventListener('dblclick', () => { mix[ch].v = ch === 'Drums' ? 100 : 80; applyMix(ch); });
-  f.querySelector('.mute').onclick = () => { mix[ch].m = !mix[ch].m; applyMix(ch); };
+  tr.addEventListener('dblclick', () => { mix[ch].v = MIX_DEFAULT[ch]; applyMix(ch); });
+  f.querySelector('.mute').onclick = () => {
+    if (ch === 'Tempo') mix.Tempo.v = 100; else mix[ch].m = !mix[ch].m;
+    applyMix(ch);
+  };
   applyMix(ch);
 });
+
+/* metronóm: a dal saját ütemrácsán (tempótérkép) kattog, negyedenként, az ütem elején magasabban.
+   Kicsit előre ütemez az AudioContext órájára; lassításnál és loopnál is a hallott zenéhez igazodik. */
+const metro = { sent: new Map(), osc: [] };
+function metroClick(at, accent) {
+  const c = engine.ctx, o = c.createOscillator(), g = c.createGain();
+  o.frequency.value = accent ? 1600 : 1050;
+  g.gain.setValueAtTime(accent ? 0.9 : 0.55, at); g.gain.exponentialRampToValueAtTime(0.001, at + 0.05);
+  o.connect(g).connect(engine.metro); o.start(at); o.stop(at + 0.06);
+  metro.osc.push({ o, at });
+}
+function metroTick() {
+  const e = engine;
+  if (!e || !e.metro) return;
+  const now = e.ctx.currentTime;
+  if (!e.playing || e.t0 == null || mix.Metro.m || !mix.Metro.v) {      // megállt: a már beütemezett klikkek se szóljanak
+    metro.osc.forEach(({ o, at }) => { if (at > now) try { o.stop(); } catch (x) {} });
+    metro.osc = []; metro.sent.clear(); return;
+  }
+  const t = e.time(), r = e.rate || 1, lp = e.loop, end = t + 0.2 * r, spans = [];
+  if (lp && t < lp[1] && end > lp[1]) spans.push([t, lp[1], now], [lp[0], lp[0] + end - lp[1], now + (lp[1] - t) / r]);
+  else spans.push([t, end, now]);
+  for (const [a, b, c0] of spans) {
+    for (let q = Math.ceil(barPos(a) * BEATS - 1e-6); q <= barPos(b) * BEATS; q++) {
+      const st = barTime(q / BEATS);
+      if (st < a || st >= b) continue;
+      const at = c0 + (st - a) / r, key = Math.round(at * 100);
+      if (at < now || metro.sent.has(key)) continue;
+      metro.sent.set(key, at);
+      metroClick(at, ((q % BEATS) + BEATS) % BEATS === 0);
+    }
+  }
+  for (const [k, at] of metro.sent) if (at < now - 1) metro.sent.delete(k);
+  metro.osc = metro.osc.filter(x => x.at > now - 0.2);
+}
+setInterval(metroTick, 25);
 
 /* ---------- KAMERA: kamerakép + élő kotta, felvétellel ----------
    A vászon maga a felvétel: kamerakép (kitöltve) + alul kottasáv (a fő nézet kottasora képként) + lejátszófej.
@@ -1809,240 +1895,147 @@ $('camClose').onclick = () => doneFile ? $('doneClose').click() : cam.rec ? stop
 $('camRec').onclick = () => cam.rec ? stopRec() : startRec();
 $('camPlay').onclick = () => $('play').click();
 
-/* ---------- PRACTICE: dobgép a kottából ----------
-   A kiválasztott rész (groove, fill, a teljes szám vagy egy szekciója) a dobórák app dobmintáival szól,
-   pontosan a kottából ütemezve: így tetszőlegesen lassítható, a hang nem torzul.
-   Kotta-token → minta: h zárt hihat, o nyitott hihat, r ride, c crash, t tam, s pergő, f álló tam, k lábdob;
-   '(s)' ghost note = halk, 's>' hangsúly = hangos. A hangok az AudioContext órájára ütemeződnek, kicsit előre. */
-const DRUM_FILE = { h: 'hihat', o: 'openhat', r: 'ride', c: 'crash', t: 'tom1', s: 'snare', f: 'floortom', k: 'kick' };
-const DRUM_GAIN = { kick: 1, snare: 0.85, hihat: 0.45, openhat: 0.45, ride: 0.45, crash: 0.6, tom1: 0.85, floortom: 0.9 };   // a minták azonos csúcsra normáltak
-const pr = { ctx: null, buf: {}, loading: null, key: '', tab: 'groove', bars: [], nums: null, isFill: false, L: 0, events: [],
-  playing: false, t0: 0, ei: 0, loopN: 0, timer: null, out: null, openHat: null, shownPair: -1, pct: 100,
-  midiV: +(camLS('prMidi') ?? 80), metV: +(camLS('prMet') ?? 60), countIn: camLS('prCountIn') !== '0' };
-const prBpm = () => Math.max(20, Math.round(BPM * pr.pct / 100));
-const prBarDur = () => BEATS * 60 / prBpm();
-
-function prAudio() {
-  if (pr.ctx) return pr.ctx;
-  const c = pr.ctx = new AudioContext();
-  pr.midi = c.createGain(); pr.met = c.createGain(); pr.cnt = c.createGain();
-  [pr.midi, pr.met, pr.cnt].forEach(g => g.connect(c.destination));
-  prVol();
-  return c;
-}
-function prLoad() {
-  const c = prAudio();
-  return pr.loading || (pr.loading = Promise.all([...new Set(Object.values(DRUM_FILE))].map(async n => {
-    try { const r = await fetch(`drums/${n}.wav`); if (!r.ok) throw new Error(r.status); pr.buf[n] = await c.decodeAudioData(await r.arrayBuffer()); }
-    catch (e) { console.warn('dobminta', n, e); }
-  })));
-}
-function prVol() {
-  if (!pr.ctx) return;
-  const t = pr.ctx.currentTime, sq = v => (v / 100) ** 2;
-  pr.midi.gain.setTargetAtTime(sq(pr.midiV) * 1.4, t, 0.015);
-  pr.met.gain.setTargetAtTime(sq(pr.metV), t, 0.015);
-  pr.cnt.gain.setTargetAtTime(Math.max(sq(pr.metV), 0.35), t, 0.015);   // a beszámolás akkor is hallatszik, ha a metronóm le van véve
-}
-
-/* a loop eseményei ütem-egységben (0 … L): dobütések a kottából + metronóm negyedenként */
-function prEvents(bars) {
-  const ev = [];
-  bars.forEach((beats, bi) => {
-    for (let q = 0; q < BEATS; q++) ev.push({ p: bi + q / BEATS, click: q === 0 });
-    if (!beats) return;
-    beats.forEach((beat, q) => {
-      const slots = beat.trim().split(/\s+/), m = slots.length;
-      slots.forEach((sl, i) => {
-        if (sl === '-') return;
-        sl.split('+').forEach(tok => {
-          const file = DRUM_FILE[tok.replace(/[()>]/g, '')];
-          if (file) ev.push({ p: bi + (q + i / m) / BEATS, file, vel: /^\(.*\)$/.test(tok) ? 0.3 : tok.endsWith('>') ? 1.35 : 1 });
-        });
-      });
+/* ---------- rész-videók: tanári videó + saját felvételek ----------
+   Tanári videó: videos/index.json → { "<dal id>": { "<elem neve>": "fájl.mp4" } }, a fájlok a videos/ mappában.
+   Saját felvétel: kamera + mikrofon (vagy csak mikrofon) nyersen; a zene a fülhallgatóban szól, a fájlba nem kerül.
+   A felvételek egyelőre a böngészőben maradnak (IndexedDB), részenként listázva. */
+const recDB = (() => {
+  let db = null;
+  const open = () => db || (db = new Promise((ok, no) => {
+    const r = indexedDB.open('songpractice', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('takes', { keyPath: 'id', autoIncrement: true }).createIndex('key', 'key');
+    r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error);
+  }));
+  const run = async (mode, fn) => {
+    const d = await open();
+    return new Promise((ok, no) => {
+      const t = d.transaction('takes', mode), req = fn(t.objectStore('takes'));
+      t.oncomplete = () => ok(req.result); t.onerror = () => no(t.error);
     });
-  });
-  return ev.sort((a, b) => a.p - b.p);
+  };
+  return { add: o => run('readwrite', s => s.add(o)), list: key => run('readonly', s => s.index('key').getAll(key)), del: id => run('readwrite', s => s.delete(id)) };
+})();
+
+let teacherVideos = null;
+const loadTeacherVideos = () => teacherVideos || (teacherVideos = fetch('videos/index.json').then(r => r.ok ? r.json() : {}).catch(() => ({})));
+const takeKey = () => location.hash.slice(1);                          // dal/el/n[/v]: egy rész (variáció) felvételei együtt
+
+async function showMedia(x, e) {
+  const tv = ((await loadTeacherVideos())[x.id] || {})[e.name];
+  if (song !== x) return;
+  $('tvBox').innerHTML = tv ? `<video controls playsinline preload="metadata" src="videos/${encodeURI(tv)}"></video>`
+                            : '<p>Ehhez a részhez még nincs tanári videó.</p>';
+  showTakes();
 }
 
-function prClick(t, accent, dest) {
-  const c = pr.ctx, o = c.createOscillator(), g = c.createGain();
-  o.frequency.value = accent ? 1600 : 1050;
-  g.gain.setValueAtTime(accent ? 0.9 : 0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-  o.connect(g).connect(dest); o.start(t); o.stop(t + 0.06);
-}
-function prHit(t, e) {
-  const c = pr.ctx, b = pr.buf[e.file];
-  if (!b) return;
-  if (e.file === 'hihat' && pr.openHat) { pr.openHat.gain.setTargetAtTime(0, t, 0.015); pr.openHat = null; }   // zárt hihat elfojtja a nyitottat
-  const s = c.createBufferSource(), g = c.createGain();
-  s.buffer = b; g.gain.value = DRUM_GAIN[e.file] * e.vel;
-  s.connect(g).connect(pr.out.midi); s.start(t);
-  if (e.file === 'openhat') pr.openHat = g;
-}
-
-function prTick() {
-  const c = pr.ctx, until = c.currentTime + 0.15, bd = prBarDur();
-  if (!pr.events.length) return;
-  for (;;) {
-    const e = pr.events[pr.ei], t = pr.t0 + (pr.loopN * pr.L + e.p) * bd;
-    if (t > until) break;
-    if (t >= c.currentTime - 0.02) e.click != null ? prClick(t, e.click, pr.out.met) : prHit(t, e);
-    if (++pr.ei >= pr.events.length) { pr.ei = 0; pr.loopN++; }
-  }
-}
-
-async function prPlay() {
-  if (pr.playing || !pr.L) return;
-  const c = prAudio(); c.resume();
-  pr.playing = true; prIcon();
-  await prLoad();
-  if (!pr.playing) return;
-  // minden lejátszás saját kimenetet kap: megállításkor ezt lekapcsolva az előre ütemezett hangok is elnémulnak
-  pr.out = { midi: c.createGain(), met: c.createGain(), cnt: c.createGain() };
-  pr.out.midi.connect(pr.midi); pr.out.met.connect(pr.met); pr.out.cnt.connect(pr.cnt);
-  const bd = prBarDur(), start = c.currentTime + 0.08;
-  pr.t0 = start + (pr.countIn ? bd : 0);
-  if (pr.countIn) for (let q = 0; q < BEATS; q++) prClick(start + q * bd / BEATS, q === 0, pr.out.cnt);
-  pr.ei = 0; pr.loopN = 0; pr.openHat = null;
-  prTick();
-  pr.timer = setInterval(prTick, 25);
-  requestAnimationFrame(prRender);
-}
-function prStop() {
-  if (!pr.playing) return;
-  pr.playing = false; clearInterval(pr.timer); pr.timer = null;
-  if (pr.out) { const o = pr.out; Object.values(o).forEach(g => g.gain.setTargetAtTime(0, pr.ctx.currentTime, 0.01)); setTimeout(() => Object.values(o).forEach(g => g.disconnect()), 200); pr.out = null; }
-  $('prCount').hidden = true;
-  prIcon(); prShow(0, 0);
-}
-const prIcon = () => { $('prIcon').innerHTML = pr.playing ? ICON_PAUSE : ICON_PLAY; };
-$('prPlay').onclick = () => pr.playing ? prStop() : prPlay();
-
-/* tempóváltás lejátszás közben: a mostani pozíció marad, csak onnan gyorsabb / lassabb */
-function setPrTempo(pct) {
-  const now = pr.ctx && pr.playing ? pr.ctx.currentTime : null, old = prBarDur();
-  pr.pct = Math.max(30, Math.min(110, pct));
-  if (now != null) pr.t0 = now - (now - pr.t0) / old * prBarDur();
-  $('prTempo').value = prBpm();
-  $('prBpm').textContent = prBpm();
-  $('prPct').textContent = `· ${Math.round(pr.pct)}%`;
-  [...$('prQuick').children].forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.p - pr.pct) < 0.5));
-}
-$('prTempo').oninput = e => setPrTempo(+e.target.value / BPM * 100);
-$('prQuick').onclick = e => { const b = e.target.closest('button'); if (b) setPrTempo(+b.dataset.p); };
-$('prMidi').oninput = e => { pr.midiV = +e.target.value; camLS('prMidi', pr.midiV); prShowVol(); prVol(); };
-$('prMet').oninput = e => { pr.metV = +e.target.value; camLS('prMet', pr.metV); prShowVol(); prVol(); };
-$('prCountIn').onchange = e => { pr.countIn = e.target.checked; camLS('prCountIn', pr.countIn ? '1' : '0'); };
-function prShowVol() { $('prMidiV').textContent = pr.midiV; $('prMetV').textContent = pr.metV; }
-
-/* kijelző: elemnél az elem összes üteme nagyban, a teljes számnál / szekciónál az aktuális ütempár + a következő halványan */
-function prShow(bi, frac) {
-  $('prBar').textContent = pr.nums ? pr.nums[bi] : bi + 1;
-  if (!pr.nums) {
-    $('prBig').querySelectorAll('.hl').forEach(r => r.setAttribute('opacity', +r.dataset.i === bi ? 1 : 0.35));
-    $('prBig').querySelectorAll('.ph').forEach(ph => {
-      const on = pr.playing && +ph.dataset.i === bi;
-      ph.setAttribute('opacity', on ? 1 : 0);
-      if (on) { const x = +ph.dataset.x0 + PADL + 2 + frac * (BIG_W - PADL - PADR); ph.setAttribute('x1', x); ph.setAttribute('x2', x); }
-    });
-    return;
-  }
-  const ps = bi - bi % 2;
-  if (ps !== pr.shownPair) {
-    pr.shownPair = ps;
-    const pair = i => [pr.nums[i % pr.L], pr.L > 1 ? pr.nums[(i + 1) % pr.L] : null].filter(n => n != null);
-    const cur = ps + 1 < pr.L ? pair(ps) : [pr.nums[ps]];
-    drawLine($('prL0'), cur, fitVW($('prL0'), 2) * cur.length / 2);
-    const nx = ps + 2 < pr.L ? ps + 2 : 0;
-    const nb = nx + 1 < pr.L ? pair(nx) : [pr.nums[nx]];
-    drawLine($('prL1'), nb, fitVW($('prL0'), 2) * nb.length / 2);
-  }
-  playhead($('prL0'), pr.playing ? pr.nums[bi] : -1, frac);
-}
-
-function prRender() {
-  if (!pr.playing || view !== 'practice') return;
-  const c = pr.ctx, p = (c.currentTime - (c.outputLatency || 0) - pr.t0) / prBarDur();
-  if (pr.out) {
-    if (p < 0) { $('prCount').hidden = false; $('prCount').textContent = Math.min(BEATS, Math.floor((p + 1) * BEATS) + 1); prShow(0, 0); }
-    else { $('prCount').hidden = true; const k = Math.floor(p); prShow(k % pr.L, p - k); }
-  }
-  requestAnimationFrame(prRender);
-}
-
-/* kiválasztás: kulcs a hash-ben — e3 (3. elem), e3v1 (variációja), all (teljes szám), s2 (2. szekció) */
-function prSelect(x, key) {
-  const els = x.elements || [];
-  let m = /^e(\d+)(?:v(\d+))?$/.exec(key), s = /^s(\d+)$/.exec(key);
-  if (m && !els[+m[1]]) m = null;
-  if (m && m[2] && !els[+m[1]].variants[+m[2] - 1]) m = null;
-  if (!m && !s && key !== 'all') { const i = els.findIndex(e => e.type === pr.tab); key = i >= 0 ? `e${i}` : 'all'; m = /^e(\d+)$/.exec(key); }
-  const wasPlaying = pr.playing;
-  prStop();
-  pr.key = key; pr.shownPair = -1;
-  const last = SCORE.length - 1;
-  if (m) {
-    const e = els[+m[1]], part = m[2] ? e.variants[+m[2] - 1] : e;
-    pr.tab = e.type; pr.bars = part.bars || [part.beats]; pr.nums = null; pr.isFill = e.type === 'fill';
-    $('prName').textContent = e.name + (m[2] ? ` · ${part.name}` : '');
-    $('prWhere').textContent = `${pr.bars.length} ütemes ${e.type === 'fill' ? 'fill' : 'groove'} · a dalban: ${part.loop[0]}–${part.loop[1]}. ütem`;
-  } else {
-    const sec = s && SECTIONS[+s[1]];
-    const from = sec ? sec.from : 1, to = sec ? sec.to : last;
-    pr.tab = 'song'; pr.nums = Array.from({ length: to - from + 1 }, (_, i) => from + i); pr.bars = pr.nums.map(n => SCORE[n]); pr.isFill = false;
-    $('prName').textContent = sec ? sec.name : 'Teljes szám';
-    $('prWhere').textContent = `${from}–${to}. ütem · ${to - from + 1} ütem`;
-  }
-  pr.L = pr.bars.length; pr.events = prEvents(pr.bars);
-  $('prBars').textContent = pr.nums ? pr.nums[pr.L - 1] : pr.L;
-  $('prBig').hidden = !!pr.nums; $('prLine').hidden = !pr.nums;
-  if (!pr.nums) drawBig($('prBig'), pr.bars, pr.isFill);
-  prList(x);
-  prShow(0, 0);
-  if (wasPlaying) prPlay();
-}
-
-function prList(x) {
-  [...$('prTabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === pr.tab));
-  const els = x.elements || [], it = (key, label, sub, cls = '') =>
-    `<button data-k="${key}" class="${cls}${key === pr.key ? ' on' : ''}"><span>${label}</span><small>${sub}</small></button>`;
-  let h = '';
-  if (pr.tab === 'song') {
-    h += it('all', 'Teljes szám', `1–${SCORE.length - 1}`);
-    SECTIONS.forEach((s, i) => { if (!s.tacet) h += it(`s${i}`, s.name, `${s.from}–${s.to}`); });
-  } else {
-    els.forEach((e, i) => {
-      if (e.type !== pr.tab) return;
-      h += it(`e${i}`, e.name, `${(e.bars || [0]).length} ütem`);
-      e.variants.forEach((v, j) => { h += it(`e${i}v${j + 1}`, `↳ ${v.name}`, `${(v.bars || [0]).length} ütem`, 'var'); });
-    });
-    if (!h) h = '<p style="margin:12px 4px;font-size:12px;font-weight:600;color:var(--mut)">Ebben a dalban nincs ilyen elem.</p>';
-  }
-  $('prList').innerHTML = h;
-}
-$('prList').onclick = e => { const b = e.target.closest('button'); if (b && song) location.hash = `${song.id}/practice/${b.dataset.k}`; };
-$('prTabs').onclick = e => {
-  const b = e.target.closest('button');
-  if (!b || !song) return;
-  pr.tab = b.dataset.t;
-  if (pr.tab === 'song') return location.hash = `${song.id}/practice/all`;
-  const i = (song.elements || []).findIndex(x => x.type === pr.tab);
-  if (i >= 0) location.hash = `${song.id}/practice/e${i}`; else prList(song);
+const ICO = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg>',
 };
-
-function showPractice(x, key) {
-  $('prBack').href = `#${x.id}`;
-  $('prSong').textContent = x.title;
-  document.title = `Practice – ${x.title} – Song Practice`;
-  if (pr.song !== x.id) { prStop(); pr.song = x.id; pr.pct = 100; pr.key = ''; pr.L = 0; pr.tab = 'groove'; }
-  setPrTempo(pr.pct);
-  $('prTempo').min = Math.round(BPM * 0.3); $('prTempo').max = Math.round(BPM * 1.1);
-  $('prTempo').value = prBpm();
-  $('prMidi').value = pr.midiV; $('prMet').value = pr.metV; $('prCountIn').checked = pr.countIn; prShowVol();
-  if (key !== pr.key || !pr.L) prSelect(x, key || '');
-  prLoad();                                                           // a minták betöltése már most elindul
+let takeUrls = [];
+async function showTakes() {
+  const key = takeKey();
+  let list = [];
+  try { list = await recDB.list(key); } catch (e) { console.warn('takes', e); }
+  if (takeKey() !== key) return;
+  takeUrls.forEach(u => URL.revokeObjectURL(u)); takeUrls = [];
+  list.sort((a, b) => b.created - a.created);
+  $('takes').innerHTML = list.length ? '' : '<p>Még nincs felvételed ehhez a részhez. Vedd fel magad, és nézd vissza!</p>';
+  for (const t of list) {
+    const d = new Date(t.created), p = n => String(n).padStart(2, '0');
+    const el = document.createElement('div'); el.className = 'take';
+    el.innerHTML = `<div class="take-row">
+        <span>${t.kind === 'video' ? 'Videó' : 'Hang'} · ${fmt(t.secs)}<small>${d.getMonth() + 1}.${p(d.getDate())}. ${p(d.getHours())}:${p(d.getMinutes())} · ${t.tempo}% tempó</small></span>
+        <button data-a="play" title="Lejátszás">${ICO.play}</button><button data-a="save" title="Mentés / megosztás">${ICO.save}</button><button data-a="del" title="Törlés">${ICO.del}</button>
+      </div>`;
+    el.onclick = async ev => {
+      const a = ev.target.closest('button'); if (!a) return;
+      if (a.dataset.a === 'play') {
+        if (el.querySelector('video,audio')) return;
+        const u = URL.createObjectURL(t.blob); takeUrls.push(u);
+        const m = document.createElement(t.kind === 'video' ? 'video' : 'audio');
+        m.controls = true; m.playsInline = true; m.src = u; el.appendChild(m); m.play().catch(() => {});
+      }
+      if (a.dataset.a === 'save') saveTake(t);
+      if (a.dataset.a === 'del' && confirm('Biztosan törlöd ezt a felvételt?')) { await recDB.del(t.id); showTakes(); }
+    };
+    $('takes').appendChild(el);
+  }
 }
+async function saveTake(t) {
+  const ext = t.mime.includes('mp4') ? (t.kind === 'video' ? 'mp4' : 'm4a') : 'webm';
+  const d = new Date(t.created), p = n => String(n).padStart(2, '0');
+  const name = `${t.key.split('/')[0]}-${t.kind === 'video' ? 'video' : 'hang'}-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
+  const file = new File([t.blob], name, { type: t.mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { return await navigator.share({ files: [file], title: name }); } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+
+/* felvevő ablak */
+const rec = { kind: null, stream: null, mr: null, t0: 0, ctx: null, an: null, timer: null };
+async function openRec(kind) {
+  if (!navigator.mediaDevices || !window.MediaRecorder) return alert('Ez a böngésző nem tud felvételt készíteni.');
+  rec.kind = kind;
+  if (engine && engine.playing) { engine.pause(); }
+  $('recOv').hidden = false; $('recErr').textContent = '';
+  $('recTitle').textContent = kind === 'video' ? 'VIDEÓ FELVÉTEL' : 'HANG FELVÉTEL';
+  $('recPrev').hidden = kind !== 'video'; $('recMic').hidden = kind === 'video';
+  $('recGo').disabled = true; $('recTxt').textContent = 'REC';
+  try {
+    rec.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },   // dobhoz nyers hang
+      video: kind === 'video' ? { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } : false,
+    });
+  } catch (e) { $('recErr').textContent = `A ${kind === 'video' ? 'kamera / mikrofon' : 'mikrofon'} nem érhető el (${e.name}).`; return; }
+  if ($('recOv').hidden) return stopTracks(rec.stream);
+  if (kind === 'video') $('recPrev').srcObject = rec.stream;
+  rec.ctx = new AudioContext(); rec.an = rec.ctx.createAnalyser(); rec.an.fftSize = 512;
+  rec.ctx.createMediaStreamSource(rec.stream).connect(rec.an);
+  const meter = () => {
+    if (!rec.an) return;
+    const d = new Uint8Array(512); rec.an.getByteTimeDomainData(d);
+    let p = 0; for (const b of d) p = Math.max(p, Math.abs(b - 128));
+    $('recLvl').style.width = Math.min(100, p / 128 * 100) + '%';
+    if (rec.mr) $('recTxt').textContent = fmt((performance.now() - rec.t0) / 1000);
+    requestAnimationFrame(meter);
+  };
+  meter();
+  $('recGo').disabled = false;
+}
+function startTake() {
+  const types = rec.kind === 'video' ? ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'] : ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'];
+  const type = types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  const mr = rec.mr = new MediaRecorder(rec.stream, { mimeType: type, videoBitsPerSecond: 5e6, audioBitsPerSecond: 192e3 });
+  const chunks = [], key = takeKey(), kind = rec.kind;
+  mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    const mime = mr.mimeType || type || (kind === 'video' ? 'video/webm' : 'audio/webm');
+    const secs = (performance.now() - rec.t0) / 1000;
+    try { await recDB.add({ key, kind, mime, blob: new Blob(chunks, { type: mime }), created: Date.now(), secs, tempo: Math.round(tempoPct()) }); }
+    catch (e) { alert('A felvételt nem sikerült elmenteni a böngészőbe.'); console.error(e); }
+    closeRec();
+    if (takeKey() === key) showTakes();
+  };
+  mr.start(1000); rec.t0 = performance.now();
+  $('recGo').classList.add('on');
+  if (engine && emLoop) { engine.seek(barStart(emLoop[0])); engine.play(); }   // a zene a loop elejéről indul
+}
+function closeRec() {
+  if (rec.mr && rec.mr.state !== 'inactive') { rec.mr.stop(); return; }     // az onstop ment, majd ide visszatér
+  rec.mr = null;
+  stopTracks(rec.stream); rec.stream = null; $('recPrev').srcObject = null;
+  if (rec.ctx) { rec.ctx.close(); rec.ctx = null; rec.an = null; }
+  $('recGo').classList.remove('on'); $('recOv').hidden = true;
+  if (engine && engine.playing) engine.pause();
+}
+$('recVideo').onclick = () => openRec('video');
+$('recAudio').onclick = () => openRec('audio');
+$('recGo').onclick = () => rec.mr ? closeRec() : startTake();
+$('recCancel').onclick = () => { if (rec.mr) { rec.mr.onstop = null; rec.mr.stop(); rec.mr = null; } closeRec(); };
 
 /* ---------- render loop ---------- */
 function render() {
@@ -2145,9 +2138,11 @@ function beatSVG(beats) {                                           // egy elem 
 function showChoose(x) {
   $('chTitle').textContent = x.title;
   $('chArtist').textContent = x.artist;
-  $('modeStudy').href = `#${x.id}/elements`;
+  $('modeGrooves').href = `#${x.id}/grooves`;
+  $('modeFills').href = `#${x.id}/fills`;
+  $('modeGrooves').hidden = !x.elements.some(e => e.type === 'groove');
+  $('modeFills').hidden = !x.elements.some(e => e.type === 'fill');
   $('modePlay').href = `#${x.id}/play`;
-  $('modePractice').href = `#${x.id}/practice`;
 }
 
 function showElements(x) {
@@ -2155,7 +2150,7 @@ function showElements(x) {
   $('elBack').textContent = `← ${x.title}`;
   $('elSong').textContent = x.title;
   if (!x.elements.some(e => e.type === elTab)) elTab = x.elements[0].type;
-  [...$('etabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === elTab));
+  $('elTitle').textContent = elTab === 'fill' ? 'FILLS' : 'GROOVES';
   const list = x.elements.map((e, i) => [e, i]).filter(([e]) => e.type === elTab);
   $('ecards').innerHTML = list.length ? list.map(([e, i]) => `
     <a class="ecard${e.type === 'fill' ? ' fill' : ''}" href="#${x.id}/el/${i}">
@@ -2163,15 +2158,12 @@ function showElements(x) {
       <small>${e.bars ? `${e.bars.length} ütemes · ` : ''}${e.loop[0]}–${e.loop[1]}. ütem${e.variants.length ? ` · ${e.variants.length} variáció` : ''}</small>
     </a>`).join('') : '<p>Ebben a dalban nincs ilyen elem.</p>';
 }
-$('etabs').onclick = e => {
-  const b = e.target.closest('button');
-  if (b && song) { elTab = b.dataset.t; showElements(song); }
-};
 
 function showElement(x, n, v) {
   const e = x.elements[n], part = v ? e.variants[v - 1] : e;
   elTab = e.type;
-  $('emBack').href = `#${x.id}/elements`;
+  $('emBack').href = `#${x.id}/${e.type === 'fill' ? 'fills' : 'grooves'}`;
+  $('emBack').textContent = e.type === 'fill' ? '← fillek' : '← groove-ok';
   $('emKind').textContent = e.type === 'fill' ? 'FILL' : 'GROOVE';
   $('emKind').className = 'kind' + (e.type === 'fill' ? ' fill' : '');
   $('emName').textContent = e.name;
@@ -2183,6 +2175,7 @@ function showElement(x, n, v) {
   $('emWhere').textContent = `${x.title} · ${secAt(barStart(emLoop[0]) + 0.01).name} · ${emLoop[0]}–${emLoop[1]}. ütem`;
   $('emLoop').textContent = `ismétlés: ${emLoop[0]}–${emLoop[1]}. ütem`;
   drawBig($('emBig'), emBars, e.type === 'fill');
+  showMedia(x, e);
   drawLine($('emLine'), bars, VW * Math.max(2, bars.length) / 2);   // alul: a loop teljes részlete, kicsiben
   document.title = `${e.name} – ${x.title} – Song Practice`;
 }
@@ -2234,27 +2227,24 @@ function mixerTo(parent) {
   if (m.parentNode !== parent) parent.appendChild(m);
 }
 
-/* #id → választó (ha vannak elemei), #id/play → teljes kotta, #id/elements → elemek, #id/el/n[/v] → egy elem,
-   #id/practice[/kulcs] → dobgépes gyakorlás */
+/* #id → választó (ha vannak elemei), #id/play → teljes szám, #id/grooves | #id/fills → elemek, #id/el/n[/v] → egy elem */
 function route() {
   closeCam();
+  if (!$('recOv').hidden) $('recCancel').click();
   const [id, mode = '', n, v] = location.hash.slice(1).split('/');
   const x = SONGS.find(y => y.id === id);
   const els = (x && x.elements) || [];
   view = !x ? 'home'
-    : mode === 'practice' ? 'practice'
     : mode === 'play' || !els.length ? 'play'
-    : mode === 'elements' ? 'elements'
+    : mode === 'grooves' || mode === 'fills' || mode === 'elements' ? 'elements'
     : mode === 'el' && els[+n] && (!v || els[+n].variants[+v - 1]) ? 'element'
     : 'choose';
-  const screens = { home: 'home', choose: 'choose', elements: 'elements', play: 'app', element: 'element', practice: 'prac' };
+  const screens = { home: 'home', choose: 'choose', elements: 'elements', play: 'app', element: 'element' };
   for (const k in screens) $(screens[k]).hidden = view !== k;
-  if (view !== 'practice') prStop();
   if (!x) { loadToken++; closeSong(); document.title = 'Song Practice'; setIcon(); return; }
 
   const ready = song !== x ? openSong(x) : Promise.resolve();
   if (engine) { engine.pause(); setIcon(); }
-  if (view === 'practice') showPractice(x, n || '');
   if (view === 'play') {
     mixerTo($('app'));
     emLoop = null;
@@ -2263,7 +2253,7 @@ function route() {
     document.title = `${x.title} – Song Practice`;
   }
   if (view === 'choose') { showChoose(x); document.title = `${x.title} – Song Practice`; }
-  if (view === 'elements') { showElements(x); document.title = `${x.title} – elemek – Song Practice`; }
+  if (view === 'elements') { elTab = mode === 'fills' ? 'fill' : 'groove'; showElements(x); document.title = `${x.title} – ${elTab === 'fill' ? 'fillek' : 'groove-ok'} – Song Practice`; }
   if (view === 'element') {
     mixerTo($('element'));
     showElement(x, +n, +(v || 0));
