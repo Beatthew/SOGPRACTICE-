@@ -216,6 +216,19 @@
   .meter{height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}
   .meter i{display:block;height:100%;width:0;background:var(--acc)}
   .cam-bar .close{margin-left:auto;border:0;cursor:pointer}
+  .cam-done[hidden]{display:none}
+  .cam-done{position:absolute;inset:0;z-index:2;background:rgba(10,16,19,.88);display:grid;place-items:center;padding:16px;overflow:auto}
+  .done-box{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:14px;background:var(--bg)}
+  .done-box h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--acc)}
+  .done-box video{width:100%;max-height:50vh;border-radius:8px;background:#000}
+  .done-info{margin:0;font-size:12px;font-weight:600;color:var(--mut);word-break:break-all}
+  .done-btns{display:flex;flex-direction:column;gap:8px}
+  .done-btns>*{height:48px;border-radius:10px;border:1.5px solid var(--line);background:transparent;display:grid;place-items:center;
+    font-size:14px;font-weight:800;color:#fff;text-decoration:none;cursor:pointer}
+  .done-btns .primary{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+  .done-btns [hidden]{display:none}
+  .done-hint{margin:0;font-size:12px;font-weight:600;line-height:1.6;color:rgba(255,255,255,.75)}
+  .done-hint b{color:#fff}
 
   /* ---------- narrow screens ---------- */
   @media (max-width:860px){
@@ -361,6 +374,20 @@
 <!-- kamera mód: a vászon maga a felvétel (kamera + kottasáv); a vezérlősor nem kerül rá -->
 <div class="cam" id="cam" hidden>
   <div class="cam-stage"><canvas id="camCanvas" width="1920" height="1080"></canvas><p class="cam-msg" id="camMsg"></p></div>
+  <!-- felvétel után: előnézet + mentés -->
+  <div class="cam-done" id="camDone" hidden>
+    <div class="done-box">
+      <h2>FELVÉTEL KÉSZ</h2>
+      <video id="doneVideo" controls playsinline></video>
+      <p class="done-info" id="doneInfo"></p>
+      <div class="done-btns">
+        <button class="primary" id="doneShare">Mentés / megosztás</button>
+        <a id="doneDl" href="#">Letöltés fájlként</a>
+        <button id="doneClose">Bezárás</button>
+      </div>
+      <p class="done-hint" id="doneHint"></p>
+    </div>
+  </div>
   <div class="cam-bar">
     <button class="play" id="camPlay" aria-label="Lejátszás"><svg viewBox="0 0 24 24" fill="currentColor" id="camIcon"><path d="M7 4.5v15l13-7.5z"/></svg></button>
     <button class="rec" id="camRec" title="Felvétel indítása / leállítása (R)"><i></i><span id="camRecTxt">REC</span></button>
@@ -1161,7 +1188,7 @@ $('play').onclick = () => { if (!engine) return; engine.playing ? engine.pause()
 document.addEventListener('keydown', e => {
   if (!engine) return;
   if (cam.on) {                                                       // kamera módban: Space = play, R = felvétel, Esc = bezárás
-    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || doneFile) return;
     if (e.code === 'Space') { e.preventDefault(); $('play').click(); }
     if (e.code === 'KeyR') $('camRec').click();
     if (e.code === 'Escape' && !cam.rec) closeCam();
@@ -1234,6 +1261,7 @@ async function openCam() {
 function closeCam() {
   if (!cam.on) return;
   if (cam.rec) stopRec();
+  closeDone();
   cam.on = false; $('cam').hidden = true;
   stopTracks(cam.camStream); stopTracks(cam.micStream); cam.camStream = cam.micStream = null; cam.video.srcObject = null;
   const n = cam.nodes; cam.nodes = null;
@@ -1392,13 +1420,16 @@ function startRec() {
   catch (e) { return camMsg(`A felvétel nem indult el (${e.name}).`); }
   const chunks = [];
   r.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const recT0 = performance.now();
   r.onstop = () => {
     stream.getVideoTracks().forEach(t => t.stop());                  // a hangsáv a közös felvételi kimeneté, az marad
     const mime = r.mimeType || type || 'video/webm', ext = mime.includes('mp4') ? 'mp4' : 'webm';
     const d = new Date(), p = n => String(n).padStart(2, '0');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(chunks, { type: mime }));
-    a.download = `${song ? song.id : 'song'}-playthrough-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
+    const name = `${song ? song.id : 'song'}-playthrough-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
+    const file = new File(chunks, name, { type: mime }), secs = (performance.now() - recT0) / 1000;
+    if (cam.on) return showDone(file, secs);
+    const a = document.createElement('a');                             // a kamera már bezárult (pl. másik oldalra léptek): azonnali letöltés
+    a.href = URL.createObjectURL(file); a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
   };
@@ -1413,8 +1444,48 @@ function stopRec() {
   $('camRec').classList.remove('on'); $('camRecTxt').textContent = 'REC'; $('camFmt').style.opacity = '';
   if (engine && engine.playing) { engine.pause(); setIcon(); }
 }
+/* felvétel után: előnézet + egyértelmű mentés. Telefonon a megosztás menü a legjobb út
+   (iPhone: „Videó mentése” → Fotók; Android: Galéria / Google Fotók / Drive), a letöltés a tartalék. */
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(navigator.userAgent);
+let doneFile = null;
+function showDone(file, secs) {
+  doneFile = file; doneSaved = false;
+  const url = URL.createObjectURL(file);
+  $('doneVideo').src = url; $('doneDl').href = url; $('doneDl').download = file.name;
+  $('doneInfo').textContent = `${file.name} · ${fmt(secs)} · ${(file.size / 1048576).toFixed(1)} MB`;
+  const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  $('doneShare').hidden = !canShare;
+  $('doneShare').textContent = isIOS ? 'Mentés a Fotókba' : 'Mentés / megosztás';
+  $('doneDl').classList.toggle('primary', !canShare);
+  $('doneHint').innerHTML = isIOS
+    ? (canShare ? '<b>Mentés a Fotókba</b> → a megnyíló menüben válaszd a <b>„Videó mentése”</b> sort: a videó a Fotók appba kerül.<br>' : '')
+      + '<b>Letöltés fájlként</b> → a Fájlok app <b>Letöltések</b> mappájába kerül.'
+    : isAndroid
+    ? (canShare ? '<b>Mentés / megosztás</b> → válaszd a Galériát, a Google Fotókat vagy a Drive-ot, vagy küldd el egyből.<br>' : '')
+      + '<b>Letöltés fájlként</b> → a telefon <b>Letöltések (Download)</b> mappájába kerül; a Fájlok appban vagy a Galériában találod.'
+    : '<b>Letöltés fájlként</b> → a böngésző <b>Letöltések</b> mappájába kerül.';
+  $('camDone').hidden = false;
+}
+function closeDone() {
+  if (!doneFile) return;
+  URL.revokeObjectURL($('doneVideo').src);
+  $('doneVideo').removeAttribute('src'); $('doneVideo').load();
+  doneFile = null; $('camDone').hidden = true;
+}
+let doneSaved = false;
+$('doneShare').onclick = async () => {
+  try { await navigator.share({ files: [doneFile], title: doneFile.name }); doneSaved = true; }
+  catch (e) { if (e.name !== 'AbortError') alert('A megosztás nem sikerült – használd a „Letöltés fájlként” gombot.'); }
+};
+$('doneDl').addEventListener('click', () => { doneSaved = true; });
+$('doneClose').onclick = () => {
+  if (!doneSaved && !confirm('Még nem mentetted el ezt a felvételt. Biztosan bezárod? (A videó elvész.)')) return;
+  closeDone();
+};
+
 $('camBtn').onclick = openCam;
-$('camClose').onclick = closeCam;
+$('camClose').onclick = () => doneFile ? $('doneClose').click() : cam.rec ? stopRec() : closeCam();
 $('camRec').onclick = () => cam.rec ? stopRec() : startRec();
 $('camPlay').onclick = () => $('play').click();
 
