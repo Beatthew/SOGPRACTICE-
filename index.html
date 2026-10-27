@@ -189,6 +189,7 @@
   }
 
   /* ---------- rész-videók: tanári videó + saját felvételek ---------- */
+  .emedia[hidden]{display:none}
   .emedia{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;scrollbar-width:none;margin-top:4px}
   .emedia h3{margin:8px 0 0;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--mut)}
   .tvbox video{display:block;width:100%;border-radius:8px;background:#000}
@@ -327,8 +328,9 @@
     <span class="kind" id="emKind"></span>
     <h1 id="emName"></h1>
     <div class="vtabs" id="emVars"></div>
-    <!-- videók ehhez a részhez: a tanáré (órai bemutató) + a saját felvételek (házi feladat) -->
-    <div class="emedia">
+    <!-- videók ehhez a részhez: a tanáré (órai bemutató) + a saját felvételek (házi feladat).
+         Egyelőre rejtve: később egy külön házi feladatok részbe kerül; a kód (showMedia, openRec, recDB) marad. -->
+    <div class="emedia" hidden>
       <h3>TANÁRI VIDEÓ</h3>
       <div class="tvbox" id="tvBox"></div>
       <h3>SAJÁT FELVÉTELEK</h3>
@@ -2175,7 +2177,7 @@ function showElement(x, n, v) {
   $('emWhere').textContent = `${x.title} · ${secAt(barStart(emLoop[0]) + 0.01).name} · ${emLoop[0]}–${emLoop[1]}. ütem`;
   $('emLoop').textContent = `ismétlés: ${emLoop[0]}–${emLoop[1]}. ütem`;
   drawBig($('emBig'), emBars, e.type === 'fill');
-  showMedia(x, e);
+  if (!document.querySelector('.emedia').hidden) showMedia(x, e);
   drawLine($('emLine'), bars, VW * Math.max(2, bars.length) / 2);   // alul: a loop teljes részlete, kicsiben
   document.title = `${e.name} – ${x.title} – Song Practice`;
 }
